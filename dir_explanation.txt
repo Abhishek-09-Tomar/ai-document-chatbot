@@ -1,0 +1,39 @@
+📌 What Each Folder Means (Simple Explanation)
+📂 app.py
+
+Main file that runs the UI.
+
+📂 data/
+
+raw/ → User uploaded files
+
+processed/ → Cleaned and split documents
+
+📂 embeddings/
+
+Stores vector embeddings database (FAISS/Chroma)
+
+📂 models/
+
+Stores downloaded LLM models
+
+📂 src/ (Most Important Folder)
+
+This contains your logic:
+
+File Work
+
+document_loader.py	Read PDFs
+text_splitter.py	Break text into chunks
+embeddings_creator.py	Generate embeddings
+vector_store.py	Create/search vector database
+retriever.py	Fetch relevant chunks
+llm_loader.py	Load LLM
+rag_pipeline.py	Connects everything
+
+
+🧠 How to Explain This in Viva
+
+what i Say:
+
+“I followed a modular architecture with separation of concerns. The UI, data handling, model logic, vector storage, and pipelines are organized into independent folders to ensure scalability, maintainability, and clean code structure.”
