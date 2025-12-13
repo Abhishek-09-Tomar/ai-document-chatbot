@@ -299,6 +299,20 @@ streamlit run app.py
 
 ---
 
+---
+
+## Connect with Me
+
+<p align="left">
+  <a href="https://github.com/Abhishek-09-Tomar" target="_blank">
+    <img src="https://img.shields.io/badge/GitHub-Abhishek--09--Tomar-181717?style=for-the-badge&logo=github" />
+  </a>
+  <a href="https://www.linkedin.com/in/abhishek-tomar-7aa29127b" target="_blank">
+    <img src="https://img.shields.io/badge/LinkedIn-Abhishek%20Tomar-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" />
+  </a>
+</p>
+
 ## License
 
 MIT License
+
