@@ -1,0 +1,93 @@
+:root {
+    --accent: #6366F1;
+    --bg: #F8FAFC;
+    --text-main: #1E293B;
+    --text-muted: #64748B;
+    --user-bg: #EEF2FF;
+    --assistant-bg: #FFFFFF;
+}
+
+/* App Background */
+.stApp {
+    background-color: var(--bg);
+}
+
+/* Header Styling */
+.main-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    text-align: center;
+    background: linear-gradient(90deg, #6366F1, #A855F7);
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+}
+
+/* Hide default Streamlit UI clutter */
+#MainMenu,
+header,
+footer {
+    visibility: hidden;
+}
+
+/* Footer */
+.footer-text {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    padding: 2rem;
+}
+
+/* ===============================
+   CHAT MESSAGE BASE STYLE
+================================ */
+[data-testid="stChatMessage"] {
+    max-width: 85%;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-radius: 16px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.06);
+}
+
+/* ===============================
+   USER MESSAGE (YOU)
+================================ */
+[data-testid="stChatMessage"][aria-label="Chat message from user"] {
+    background-color: var(--user-bg);
+    color: var(--text-main);
+    margin-left: auto;
+    text-align: right;
+    border-right: 4px solid var(--accent);
+}
+
+/* ===============================
+   ASSISTANT MESSAGE (RAG MODEL)
+================================ */
+[data-testid="stChatMessage"][aria-label="Chat message from assistant"] {
+    background-color: var(--assistant-bg);
+    color: var(--text-main);
+    margin-right: auto;
+    text-align: left;
+    border-left: 4px solid var(--accent);
+}
+
+/* Improve markdown readability inside messages */
+[data-testid="stChatMessage"] p {
+    margin-bottom: 0.5rem;
+}
+
+[data-testid="stChatMessage"] code {
+    background: #F1F5F9;
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+}

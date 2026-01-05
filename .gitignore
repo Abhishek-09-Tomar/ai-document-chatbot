@@ -1,0 +1,19 @@
+# Environment
+.env
+.env.*
+venv/
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Project artifacts
+cache/
+data/
+.faiss
+
+# OS
+.DS_Store
+Thumbs.db
