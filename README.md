@@ -18,7 +18,7 @@
 
 ---
 
-## 🚀 Project Overview
+## **Project Overview**
 
 This project is a **production-style Retrieval-Augmented Generation (RAG) chatbot** that answers questions **strictly grounded in uploaded documents** such as PDFs or text files.
 
@@ -32,19 +32,19 @@ It demonstrates **end-to-end system design**, clean architecture, and real-world
 
 ---
 
-## ✨ Key Features
+## **Key Features**
 
-* 📄 Upload and process PDF / text documents
-* 🔍 Semantic search using vector embeddings
-* 🧠 Context-aware question answering (no guessing)
-* 🤖 Pluggable LLMs (Mistral / Phi / LLaMA)
-* ⚡ FAISS-powered fast retrieval
-* 🖥️ Interactive Streamlit web UI
-* 🧱 Modular, layered architecture
+* Upload and process PDF / text documents
+* Semantic search using vector embeddings
+* Context-aware question answering (no guessing)
+* Pluggable LLMs (Mistral / Phi / LLaMA)
+* FAISS-powered fast retrieval
+* Interactive Streamlit web UI
+* Modular, layered architecture
 
 ---
 
-## 🧠 Why Retrieval-Augmented Generation (RAG)?
+## Why Retrieval-Augmented Generation (RAG)?
 
 * Prevents LLM hallucinations
 * Ensures answers are document-grounded
@@ -54,7 +54,7 @@ It demonstrates **end-to-end system design**, clean architecture, and real-world
 
 ---
 
-## 🏗️ System Architecture (High-Level)
+## System Architecture (High-Level)
 
 ```mermaid
 graph TD
@@ -77,7 +77,7 @@ graph TD
 
 ---
 
-## 🔄 End-to-End Workflow
+## End-to-End Workflow
 
 ```mermaid
 graph LR
@@ -93,7 +93,7 @@ graph LR
 
 ---
 
-## 🧩 Architecture (Layered Design)
+## Architecture (Layered Design)
 
 ### 1️⃣ Presentation Layer
 
@@ -152,7 +152,7 @@ ai-document-chatbot/
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Programming Language
 
@@ -197,7 +197,7 @@ streamlit run app.py
 
 ---
 
-## ▶️ How to Run (High-Level)
+## How to Run (High-Level)
 
 1. Clone the repository
 2. Install dependencies
@@ -207,7 +207,7 @@ streamlit run app.py
 
 ---
 
-## 🧪 Example Usage
+## Example Usage
 
 **Uploaded Documents:**
 
@@ -224,7 +224,7 @@ streamlit run app.py
 
 ---
 
-## 💼 Use Cases
+## Use Cases
 
 * Document-based question answering
 * Research paper analysis
@@ -234,7 +234,7 @@ streamlit run app.py
 
 ---
 
-## 🔮 Future Improvements
+## Future Improvements
 
 * Multi-document conversational memory
 * Source citation in answers
@@ -244,7 +244,7 @@ streamlit run app.py
 
 ---
 
-## 🌟 Project Highlights
+## Project Highlights
 
 * End-to-end RAG pipeline
 * FAISS-powered semantic retrieval
@@ -254,7 +254,7 @@ streamlit run app.py
 
 ---
 
-## 🎯 Interview & Resume Talking Points
+## Interview & Resume Talking Points
 
 * Designed a full RAG pipeline to reduce hallucinations
 * Implemented vector embeddings and FAISS search
@@ -265,7 +265,7 @@ streamlit run app.py
 
 ---
 
-## 📬 Connect With Me
+## Connect With Me
 
 * **GitHub:** [https://github.com/Abhishek-09-Tomar](https://github.com/Abhishek-09-Tomar)
 * **LinkedIn:** [https://www.linkedin.com/in/abhishek-tomar-7aa29127b](https://www.linkedin.com/in/abhishek-tomar-7aa29127b)
@@ -277,4 +277,5 @@ streamlit run app.py
 ## 📜 License
 
 MIT License
+
 
