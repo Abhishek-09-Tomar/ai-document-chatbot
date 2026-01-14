@@ -1,127 +1,78 @@
-import os
-import torch
-from dotenv import load_dotenv
-from transformers import (
-    AutoTokenizer,
-    AutoModelForCausalLM,
-    TextIteratorStreamer,
-    BitsAndBytesConfig
-)
-from threading import Thread
+# generator.py
+import requests
+import json
 
 # -----------------------------
-# Load environment variables
+# Ollama Configuration
 # -----------------------------
-load_dotenv()
-MODEL_NAME = os.getenv("LLM_MODEL")
-DEVICE_PREF = os.getenv("LLM_DEVICE", "cuda")  # "cuda" or "cpu"
-
-if not MODEL_NAME:
-    raise RuntimeError("LLM_MODEL is not set in .env")
-
-# -----------------------------
-# Helper: Load model + tokenizer safely
-# -----------------------------
-def load_model_and_tokenizer(model_name: str, device_preference="cuda"):
-    """
-    Dynamically loads model + tokenizer with safe 4-bit CPU offload if needed.
-    Returns: model, tokenizer, device
-    """
-    device = device_preference if device_preference=="cuda" and torch.cuda.is_available() else "cpu"
-
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-
-    if device == "cuda":
-        # 4-bit quantized model with CPU offload
-        bnb_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            llm_int8_enable_fp32_cpu_offload=True
-        )
-        model = AutoModelForCausalLM.from_pretrained(
-            model_name,
-            quantization_config=bnb_config,
-            device_map="auto",
-            dtype=torch.float16  # ✅ replaces deprecated torch_dtype
-        )
-    else:
-        # CPU-only full precision
-        model = AutoModelForCausalLM.from_pretrained(
-            model_name,
-            dtype=torch.float32  # ✅ replaces deprecated torch_dtype
-        )
-
-    model.eval()
-    return model, tokenizer, device
-
-# -----------------------------
-# Load model at startup
-# -----------------------------
-model, tokenizer, device = load_model_and_tokenizer(MODEL_NAME, DEVICE_PREF)
-
-# -----------------------------
-# Constants
-# -----------------------------
-MAX_CONTEXT_TOKENS = tokenizer.model_max_length
-MAX_NEW_TOKENS = 256
+OLLAMA_BASE_URL = "http://localhost:11434"
+MODEL_NAME = "gpt-oss:120b-cloud"   # YOUR INSTALLED MODEL
 TOP_K_DOCS = 5
 
-# -----------------------------
-# Helper: trim context to token limit
-# -----------------------------
-def trim_to_token_limit(text: str, max_tokens: int) -> str:
-    tokens = tokenizer.encode(text, add_special_tokens=False)
-    if len(tokens) <= max_tokens:
-        return text
-    return tokenizer.decode(tokens[-max_tokens:])
+
+def load_model():
+    """
+    Ollama runs as a local service.
+    This function is kept for compatibility with app.py.
+    """
+    return True
+
 
 # -----------------------------
-# Stream answer generator
+# Helper functions
 # -----------------------------
-def stream_answer(question: str, docs: list):
+def format_context(docs: list) -> str:
     """
-    Generate answer from documents in a streaming fashion.
-    Yields tokens as they are generated for real-time streaming.
+    Formats retrieved documents into a single context string.
     """
     context_blocks = [
-        f"[{d['metadata'].get('source','Doc')} | Page {d['metadata'].get('page','?')}]\n{d['text']}"
+        f"[{d.get('metadata', {}).get('source', 'Doc')} | Page {d.get('metadata', {}).get('page', '?')}]\n"
+        f"{d.get('text', '')}"
         for d in docs[:TOP_K_DOCS]
     ]
-    raw_context = "\n\n".join(context_blocks)
+    return "\n\n".join(context_blocks)
 
-    prompt = f"""You are a helpful document assistant.
-Answer strictly from the context. If not found, say so.
+
+def generate_answer(question: str, docs: list = None) -> str:
+    """
+    Generates an answer using the local Ollama model.
+    """
+
+    if docs:
+        context = format_context(docs)
+        prompt = f"""
+You are a helpful document assistant.
+Answer strictly using the context below.
+If the answer is not present, say:
+"Answer not found in the provided documents."
 
 Context:
-{raw_context}
+{context}
 
 Question:
 {question}
 
-Answer:"""
+Answer:
+"""
+    else:
+        prompt = question
 
-    # Trim prompt to fit model max tokens
-    available_tokens = MAX_CONTEXT_TOKENS - MAX_NEW_TOKENS - 50
-    prompt = trim_to_token_limit(prompt, available_tokens)
+    payload = {
+        "model": MODEL_NAME,
+        "prompt": prompt,
+        "stream": False
+    }
 
-    # Tokenize inputs
-    inputs = tokenizer(prompt, return_tensors="pt").to(device)
+    try:
+        response = requests.post(
+            f"{OLLAMA_BASE_URL}/api/generate",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(payload),
+            timeout=300  # large model → allow more time
+        )
 
-    # Setup streaming
-    streamer = TextIteratorStreamer(tokenizer, skip_special_tokens=True)
-    thread = Thread(
-        target=model.generate,
-        kwargs=dict(
-            **inputs,
-            max_new_tokens=MAX_NEW_TOKENS,
-            do_sample=True,
-            temperature=0.6,
-            top_p=0.9,
-            streamer=streamer,
-            eos_token_id=tokenizer.eos_token_id
-        ),
-    )
-    thread.start()
+        response.raise_for_status()
+        return response.json().get("response", "").strip()
 
-    # Yield tokens in real-time
-    for token in streamer:
-        yield token
+    except Exception as e:
+        return f"Ollama generation error: {str(e)}"

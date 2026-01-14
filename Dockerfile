@@ -1,5 +1,8 @@
 # 1. Use Python 3.12 for maximum AI library compatibility
-FROM python:3.13.9-slim
+
+# here i change it to 3.13-slim to 3.10-slim(because pytorch did not support that)
+FROM python:3.10-slim
+
 
 # 2. Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1

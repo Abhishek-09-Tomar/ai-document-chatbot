@@ -1,90 +1,75 @@
+# app.py
 import streamlit as st
-from dotenv import load_dotenv
 import os
-import numpy as np
+from llm.generator import generate_answer, load_model  # now valid
 
-from document_processor.loader import load_documents
-from embeddings.embedder import EmbeddingEngine
-from retrieval.faiss_store import VectorStore
-from llm.generator import stream_answer, load_model_and_tokenizer
-from utils.query_expansion import expand_query
+from PyPDF2 import PdfReader
 
-# -----------------------------
-# Load environment
-# -----------------------------
-load_dotenv()
-
-# -----------------------------
-# Streamlit page setup with favicon
-# -----------------------------
-favicon_path = "images/favicon.jpg"  # relative path to your favicon
-st.set_page_config(
-    page_title="AI Document Chatbot",
-    page_icon=favicon_path,
-    layout="centered"
-)
+st.set_page_config(page_title="AI Document Chatbot", page_icon="🤖", layout="wide")
 st.title("AI Document Chatbot")
+st.write("Ask questions about your documents!")
 
 # -----------------------------
-# Session State
+# Sidebar: Upload documents
 # -----------------------------
-if "store" not in st.session_state:
-    st.session_state.store = None
-
-# -----------------------------
-# File uploader
-# -----------------------------
-files = st.file_uploader(
-    "Upload documents (PDF or TXT)",
+uploaded_files = st.sidebar.file_uploader(
+    "Upload PDF or TXT files (optional):",
     type=["pdf", "txt"],
     accept_multiple_files=True
 )
 
 # -----------------------------
-# Process documents
+# Helper: Extract text from files
 # -----------------------------
-if st.button("Process Documents") and files:
-    chunk_size = int(os.getenv("CHUNK_SIZE"))
-    chunk_overlap = int(os.getenv("CHUNK_OVERLAP"))
-
-    docs = load_documents(files, chunk_size, chunk_overlap)
-    st.success(f"Loaded {len(docs)} document chunks.")
-
-    # Initialize embeddings and FAISS
-    embedder = EmbeddingEngine()
-    store = VectorStore(embedder, os.getenv("FAISS_PATH"))
-    store.build_or_load(docs)
-
-    st.session_state.store = store
-    st.success("Documents processed and indexed successfully.")
+def extract_text_from_file(file):
+    try:
+        if file.type == "application/pdf":
+            reader = PdfReader(file)
+            text = ""
+            for i, page in enumerate(reader.pages):
+                page_text = page.extract_text()
+                if page_text:
+                    text += f"[Page {i+1}]\n{page_text}\n\n"
+            return [{"text": text, "metadata": {"source": file.name}}]
+        else:
+            # plain txt
+            content = file.getvalue().decode("utf-8")
+            return [{"text": content, "metadata": {"source": file.name}}]
+    except Exception as e:
+        st.error(f"Error reading {file.name}: {e}")
+        return []
 
 # -----------------------------
-# User query
+# Process all uploaded files
 # -----------------------------
-query = st.chat_input("Ask a question")
+docs = []
+for file in uploaded_files:
+    docs.extend(extract_text_from_file(file))
 
-if query and st.session_state.store:
-    # Expand query for better retrieval
-    expanded_queries = expand_query(query)
+# -----------------------------
+# User query input
+# -----------------------------
+user_input = st.text_area("Enter your question:", height=150)
 
-    # Retrieve top-K docs from FAISS + rerank
-    retrieved_docs = []
-    for q in expanded_queries:
-        retrieved_docs.extend(
-            st.session_state.store.search(
-                q,
-                int(os.getenv("TOP_K")),
-                int(os.getenv("RERANK_TOP_K"))
-            )
-        )
+if st.button("Get Answer"):
+    if not user_input.strip():
+        st.warning("Please enter a question!")
+    else:
+        with st.spinner("Generating answer..."):
+            # Send user question + docs context to generator
+            answer = generate_answer(user_input, docs)
+            st.success("Answer:")
+            st.write(answer)
 
-    # -----------------------------
-    # Stream answer in real-time
-    # -----------------------------
-    with st.chat_message("assistant"):
-        placeholder = st.empty()
-        final_answer = ""
-
-        for token in stream_answer(query, retrieved_docs):
-            final_answer += token
-            placeholder.markdown(final_answer)
+# -----------------------------
+# Optional: quick usage tip
+# -----------------------------
+st.sidebar.markdown(
+    """
+    **Usage Tips:**  
+    - Upload one or multiple PDF/TXT documents.  
+    - Ask questions in the text area and click "Get Answer".  
+    - The chatbot answers based on uploaded documents.  
+    - If no documents are uploaded, it answers general questions.
+    """
+)
