@@ -153,8 +153,8 @@ def test_hosted_generation_includes_history_and_sources():
         result = answer_question('When is it?', hits, token='fake', history=history)
     assert result.text == 'March [1]'
     sent = client.chat_completion.call_args.kwargs['messages']
-    assert sent[1]['content'] == history[0]['content']
-    assert 'SOURCE PASSAGES' in sent[-1]['content']
+    assert history[0]['content'] in sent[1]['content']
+    assert '<context>' in sent[-1]['content']
     assert '0.txt' in sent[-1]['content']
 
 

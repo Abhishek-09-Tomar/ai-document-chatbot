@@ -2,23 +2,26 @@
 from hashlib import sha256
 from io import BytesIO
 import os
+import re
 
 import streamlit as st
 from streamlit.errors import StreamlitSecretNotFoundError
-from dotenv import load_dotenv
-from document_processor.loader import DocumentError, MAX_FILES, MAX_FILE_BYTES, load_documents
+from document_processor.loader import DocumentError, MAX_FILES, MAX_FILE_BYTES, load_documents, safe_filename
 from embeddings.embedder import EmbeddingEngine
 from retrieval.faiss_store import VectorStore
 from llm.generator import answer_question
 from utils.conversation import retrieval_query
+from utils.prompts import sanitize_query
+from utils.security import SessionBudget, BudgetError, select_inference_credential, log_failure
 
-load_dotenv()
 st.set_page_config(page_title='AI document chatbot', page_icon=':material/description:', layout='centered')
 
 DEFAULTS = {'messages': [], 'store': None, 'signature': None, 'active_files': [],
             'uploader_version': 0, 'processed_signature': None, 'demo': False}
 for key, value in DEFAULTS.items():
     st.session_state.setdefault(key, value)
+if 'budget' not in st.session_state:
+    st.session_state.budget = SessionBudget()
 
 
 def clear_chat():
@@ -36,7 +39,7 @@ def reset_documents():
 
 
 def server_token():
-    value = os.getenv('HF_TOKEN', '').strip()
+    value = os.environ.get('HF_TOKEN', '').strip()
     if value:
         return value
     try:
@@ -65,7 +68,7 @@ def render_message(message):
 
 with st.sidebar:
     st.header('Your documents', divider='green')
-    st.caption('PDF or TXT · up to 10 files · 10 MB each')
+    st.caption('PDF or TXT · up to 5 files · 10 MB each · 25 MB total')
     uploaded = st.file_uploader('Upload documents', type=['pdf', 'txt'], accept_multiple_files=True,
                                 key=f'uploads_{st.session_state.uploader_version}')
     process = st.button('Process documents', type='primary', icon=':material/upload:',
@@ -73,17 +76,20 @@ with st.sidebar:
     demo = st.button('Try a sample document', icon=':material/science:', width='stretch', key='demo_button')
     st.divider()
     st.subheader('Answer settings')
-    global_token = server_token()
-    personal_token = ''
-    if not global_token:
-        personal_token = st.text_input('Hugging Face token (optional)', type='password', key='personal_token',
-                                        help='Kept only in this session. Never added to the index or chat export.')
-    else:
-        st.caption('A server token is configured.')
-    token = personal_token.strip() or global_token
+    authenticated = bool(getattr(st.user, 'is_logged_in', False))
+    global_token = server_token() if authenticated else None
+    personal_token = st.text_input('Hugging Face token (optional)', type='password', key='personal_token',
+                                  max_chars=256,
+                                  help='Kept only in this session. Never added to the index or chat export.')
+    personal_token = personal_token.strip()
+    if personal_token and not re.fullmatch(r'hf_[A-Za-z0-9_]{20,200}', personal_token):
+        st.info('Enter a valid Hugging Face token to enable hosted AI.')
+        personal_token = None
+    token, shared_token = select_inference_credential(personal_token, global_token, authenticated)
     use_api = st.toggle('Use hosted AI', value=False, key='use_api', disabled=not token,
                          help='Off: find source excerpts locally. On: send relevant passages and recent chat to Hugging Face Inference Providers.')
-    st.caption('Source excerpts work without a token. Hosted AI may require inference credits.')
+    st.caption('Source excerpts work without a token. Public visitors use their own token for hosted AI; inference credits may be required.')
+    st.caption(f'{st.session_state.budget.queries}/20 questions used · minimum 2 seconds between questions')
     if use_api:
         st.info('Relevant passages and recent chat will be sent to Hugging Face and its inference provider.')
     st.divider()
@@ -122,21 +128,23 @@ if files_to_process:
     with st.status('Preparing your documents...', expanded=True) as status:
         progress = st.progress(0, text='Reading and splitting documents')
         try:
+            st.session_state.budget.consume('processing')
             docs = load_documents(files_to_process)
             progress.progress(50, text='Building your private search index')
             new_store = VectorStore(EmbeddingEngine())
             new_store.build_or_load(docs)
             st.session_state.store = new_store
             st.session_state.messages = []
-            st.session_state.active_files = [f.name for f in files_to_process]
+            st.session_state.active_files = [safe_filename(f.name) for f in files_to_process]
             st.session_state.processed_signature = signature
             st.session_state.demo = bool(demo)
             progress.progress(100, text='Ready to chat')
             status.update(label=f'{len(files_to_process)} document(s) ready · {len(docs)} source chunks', state='complete', expanded=False)
-        except (DocumentError, ValueError) as exc:
+        except (DocumentError, BudgetError) as exc:
             st.warning(str(exc))
             status.update(label='Please check your documents', state='error', expanded=True)
-        except Exception:
+        except Exception as error:
+            log_failure('document_processing_failed', error)
             st.error('We could not prepare these documents. Try a smaller selection or reset and upload again.')
             status.update(label='Processing could not finish', state='error', expanded=True)
 
@@ -162,18 +170,28 @@ for message in st.session_state.messages:
 
 question = st.chat_input('Ask about your documents...', key='question', disabled=store is None,
                           max_chars=2000, submit_mode='disable')
-if question and question.strip() and store is not None:
-    question = question.strip()[:2000]
+if question and store is not None:
+    question = sanitize_query(question)
+    if not question:
+        st.info('Please enter a question using readable text.')
+        st.stop()
+    try:
+        st.session_state.budget.consume('query')
+    except BudgetError as error:
+        st.warning(str(error))
+        st.stop()
     history = st.session_state.messages
     user_message = {'role': 'user', 'content': question}
     render_message(user_message)
     with st.spinner('Finding the relevant passages...'):
         try:
             sources = store.search(retrieval_query(question, history))
-            result = answer_question(question, sources, token=token, history=history, use_api=bool(use_api))
+            result = answer_question(question, sources, token=token, history=history,
+                                     use_api=bool(use_api), shared_token=shared_token)
             assistant_message = {'role': 'assistant', 'content': result.text, 'sources': sources,
                                  'mode': result.mode, 'notice': result.notice}
-        except Exception:
+        except Exception as error:
+            log_failure('question_failed', error)
             assistant_message = {'role': 'assistant', 'content': 'Search could not finish. Please try again or reset your documents.'}
     st.session_state.messages = (history + [user_message, assistant_message])[-40:]
     render_message(assistant_message)

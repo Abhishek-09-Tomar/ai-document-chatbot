@@ -1,27 +1,20 @@
-"""CPU embeddings: fitted TF-IDF by default, optional Sentence-Transformers."""
-import os
+"""CPU-only fitted TF-IDF. No executable model code or serialized weights."""
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 
 class EmbeddingEngine:
     def __init__(self, backend=None):
-        self.backend = backend or os.getenv('EMBEDDING_BACKEND', 'tfidf')
+        self.backend = backend or 'tfidf'
         self.vectorizer = None
-        self.model = None
-        if self.backend == 'sentence-transformers':
-            from sentence_transformers import SentenceTransformer  # ty: ignore[import-not-found] -- optional extra
-            self.model = SentenceTransformer(
-                os.getenv('EMBEDDING_MODEL', 'sentence-transformers/all-MiniLM-L6-v2'), device='cpu')
-        elif self.backend != 'tfidf':
-            raise ValueError('EMBEDDING_BACKEND must be tfidf or sentence-transformers.')
+        if self.backend != 'tfidf':
+            raise ValueError('Only the CPU tfidf backend is supported.')
 
     def fit_embed(self, texts):
-        if self.model is not None:
-            return self.embed(texts)
         self.vectorizer = TfidfVectorizer(
             lowercase=True, strip_accents='unicode', ngram_range=(1, 2),
-            max_features=4096, token_pattern=r'(?u)\b\w+\b', sublinear_tf=True)
+            # token_pattern is a regex for words, not an authentication token.
+            max_features=4096, token_pattern=r'(?u)\b\w+\b', sublinear_tf=True)  # nosec B106
         try:
             vectors = self.vectorizer.fit_transform(texts)
         except ValueError:
@@ -29,9 +22,6 @@ class EmbeddingEngine:
         return vectors.toarray().astype(np.float32)
 
     def embed(self, texts):
-        if self.model is not None:
-            return self.model.encode(texts, batch_size=16, convert_to_numpy=True,
-                                     normalize_embeddings=True, show_progress_bar=False).astype(np.float32)
         if self.vectorizer is None:
             raise ValueError('Fit the document vocabulary before searching.')
         return self.vectorizer.transform(texts).toarray().astype(np.float32)

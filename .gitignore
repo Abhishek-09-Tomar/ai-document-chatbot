@@ -2,6 +2,11 @@
 .env.*
 !.env.example
 .streamlit/secrets.toml
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
 venv/
 .venv/
 __pycache__/
@@ -9,10 +14,13 @@ __pycache__/
 .pytest_cache/
 .ty_cache/
 cache/
+.cache/
+models/
 data/
 *.faiss
 *.index
 *.pkl
 *.log
+pytest-cache-files-*/
 .DS_Store
 Thumbs.db

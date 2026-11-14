@@ -8,7 +8,13 @@ font = "sans serif"
 
 [server]
 maxUploadSize = 10
-maxMessageSize = 110
+maxMessageSize = 2
+enableCORS = true
+enableXsrfProtection = true
+enableAgentApi = false
+enableStaticServing = false
+disconnectedSessionTTL = 30
+allowedHosts = ["localhost", "127.0.0.1", "abhishek-tomar-1-ai-document-chatbot.hf.space"]
 
 [browser]
 gatherUsageStats = false

@@ -11,9 +11,9 @@ RUN useradd --create-home --uid 1000 user
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY --chown=user:user . .
-USER user
+COPY . .
+USER 1000:1000
 EXPOSE 7860
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:7860/_stcore/health', timeout=3)"
-CMD ["streamlit", "run", "app.py", "--server.address=0.0.0.0", "--server.port=7860", "--server.headless=true"]
+CMD ["streamlit", "run", "app.py", "--server.address=0.0.0.0", "--server.port=7860", "--server.headless=true", "--server.enableXsrfProtection=true", "--server.enableCORS=true", "--server.enableAgentApi=false"]
