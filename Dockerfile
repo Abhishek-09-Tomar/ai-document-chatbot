@@ -1,35 +1,19 @@
-# 1. Use Python 3.12 for maximum AI library compatibility
+FROM python:3.12-slim
 
-# here i change it to 3.13-slim to 3.10-slim(because pytorch did not support that)
-FROM python:3.10-slim
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    HF_HOME=/home/user/.cache/huggingface \
+    OMP_NUM_THREADS=2 \
+    OPENBLAS_NUM_THREADS=2
 
-
-# 2. Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-# 3. Set the working directory
+RUN useradd --create-home --uid 1000 user
 WORKDIR /app
-
-# 4. Install system dependencies for document processing & FAISS
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libmagic-dev \
-    gcc \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# 5. Copy requirements and install
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
-
-# 6. Copy all your project folders (embeddings, llm, retrieval, etc.)
-COPY . .
-
-# 7. Expose Streamlit's default port
-EXPOSE 8501
-
-# 8. Run the app
-# Using 'streamlit run' as the entry point
-CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+RUN pip install --no-cache-dir -r requirements.txt
+COPY --chown=user:user . .
+USER user
+EXPOSE 7860
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:7860/_stcore/health', timeout=3)"
+CMD ["streamlit", "run", "app.py", "--server.address=0.0.0.0", "--server.port=7860", "--server.headless=true"]

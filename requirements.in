@@ -1,0 +1,8 @@
+# CPU-only core; no model downloads needed to start or search documents.
+streamlit>=1.57,<2
+numpy>=2.2,<3
+scikit-learn>=1.6,<2
+faiss-cpu>=1.10,<2
+pypdf>=6,<7
+huggingface-hub>=1,<2
+python-dotenv>=1.1,<2

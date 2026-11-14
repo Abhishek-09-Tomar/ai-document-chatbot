@@ -1,281 +1,94 @@
-# 📄 AI Document Question Answering Chatbot (RAG)
-
-<p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&duration=3000&pause=800&color=22C55E&center=true&vCenter=true&width=850&lines=Retrieval-Augmented+Generation+Chatbot;Document-Grounded+Question+Answering;Production-Style+NLP+%26+System+Design+Project" />
-</p>
-
-<p align="center">
-  <b>AI-powered chatbot that answers questions directly from your documents — not from guesses.</b><br/>
-  Built using Retrieval-Augmented Generation (RAG) with modern Transformer models.
-</p>
-
-<p align="center">
-  <a href="https://github.com/Abhishek-09-Tomar"><img src="https://img.shields.io/badge/GitHub-Abhishek--09--Tomar-181717?style=for-the-badge&logo=github" /></a>
-  <a href="https://www.linkedin.com/in/abhishek-tomar-7aa29127b"><img src="https://img.shields.io/badge/LinkedIn-Abhishek%20Tomar-0A66C2?style=for-the-badge&logo=linkedin" /></a>
-  <a href="https://leetcode.com/u/Abhishek_Tomar_99/"><img src="https://img.shields.io/badge/LeetCode-150%2B%20Solved-FFA116?style=for-the-badge&logo=leetcode" /></a>
-  <a href="https://codeforces.com/profile/Abhishek_Tomar"><img src="https://img.shields.io/badge/Codeforces-Competitive-1F8ACB?style=for-the-badge&logo=codeforces" /></a>
-</p>
-
+---
+title: AI Document Chatbot
+emoji: 📄
+colorFrom: green
+colorTo: blue
+sdk: docker
+app_port: 7860
 ---
 
-## **Project Overview**
+# AI document chatbot
 
-This project is a **production-style Retrieval-Augmented Generation (RAG) chatbot** that answers questions **strictly grounded in uploaded documents** such as PDFs or text files.
+Upload PDFs or UTF-8 text files, ask follow-up questions, and inspect the source passages behind each answer. Runs on CPU with no model downloads or API token required.
 
-Instead of hallucinating, the system:
+## Use the app
 
-1. **Retrieves relevant information** from documents using vector search
-2. **Augments the prompt** with retrieved context
-3. **Generates accurate answers** using Transformer-based LLMs
+1. Upload documents in the sidebar and select **Process documents**, or select **Try a sample document**.
+2. Ask a specific question in the chat input.
+3. Open **View Source Chunks** under an answer to see the filename, page, and retrieved passages.
+4. **Clear chat** keeps the current documents; **Reset documents** clears documents and conversation.
+5. Download the conversation as a text file.
 
-It demonstrates **end-to-end system design**, clean architecture, and real-world NLP engineering.
+Source-excerpt mode is the default: it returns relevant passages, not generated answers. Optional **Use hosted AI** sends relevant passages and recent conversation to Hugging Face Inference Providers for an AI answer with numbered source references. Configure a server token or enter a personal token in the sidebar. Provider errors, missing credits, or unavailable models fall back to clearly labeled source excerpts.
 
----
+## Run locally
 
-## **Key Features**
-
-* Upload and process PDF / text documents
-* Semantic search using vector embeddings
-* Context-aware question answering (no guessing)
-* Pluggable LLMs (Mistral / Phi / LLaMA)
-* FAISS-powered fast retrieval
-* Interactive Streamlit web UI
-* Modular, layered architecture
-
----
-
-## Why Retrieval-Augmented Generation (RAG)?
-
-* Prevents LLM hallucinations
-* Ensures answers are document-grounded
-* Scales to large document collections
-* Efficient use of LLM context windows
-* Industry-standard approach for enterprise AI systems
-
----
-
-## System Architecture (High-Level)
-
-```mermaid
-graph TD
-    U[User] --> UI[Streamlit UI]
-    UI --> UP[Upload Documents]
-    UP --> DP[Document Processor]
-    DP --> CS[Chunking & Cleaning]
-    CS --> EE[Embedding Engine]
-    EE --> VS[FAISS Vector Store]
-
-    UI --> Q[User Question]
-    Q --> QE[Question Embedding]
-    QE --> VS
-
-    VS --> RC[Relevant Chunks]
-    RC --> PB[Prompt Builder]
-    PB --> LLM[LLM: Mistral / Phi / LLaMA]
-    LLM --> UI
-```
-
----
-
-## End-to-End Workflow
-
-```mermaid
-graph LR
-    A[Upload Docs] --> B[Text Extraction]
-    B --> C[Chunking]
-    C --> D[Embeddings]
-    D --> E[Vector Store]
-    F[User Query] --> G[Query Embedding]
-    G --> E
-    E --> H[Retrieve Context]
-    H --> I[LLM Answer]
-```
-
----
-
-## Architecture (Layered Design)
-
-### 1️⃣ Presentation Layer
-
-* **Technology:** Streamlit
-* Handles file upload, question input, and answer display
-
-### 2️⃣ Application / Logic Layer
-
-**Document Processor**
-
-* PDF/text reading
-* Cleaning and normalization
-* Intelligent chunking
-
-**Embedding Engine**
-
-* Sentence-Transformers
-* Dense vector representations
-
-**Retrieval Engine**
-
-* FAISS similarity search
-* Top-k relevant chunks
-
-**Prompt Builder**
-
-* Combines retrieved context + user question
-
-### 3️⃣ Model Layer
-
-* Transformer-based LLMs
-* Generates final grounded answers
-
-### 4️⃣ Data Layer
-
-* Document chunks
-* Embeddings
-* Metadata
-
----
-
-## 📁 Folder Structure
-
-```text
-ai-document-chatbot/
-│
-├── app.py                 # Streamlit application entry
-├── document_processor/    # PDF & text processing
-├── embeddings/            # Embedding generation
-├── retrieval/             # FAISS vector search
-├── llm/                   # LLM integration
-├── assets/                # Images, demo GIFs
-├── requirements.txt
-└── README.md
-```
-
----
-
-## Tech Stack
-
-### Programming Language
-
-* Python
-
-### LLMs & NLP
-
-* Hugging Face Transformers
-* PyTorch
-* Sentence-Transformers
-* Mistral / Phi / LLaMA
-
-### Retrieval & Storage
-
-* FAISS
-* ChromaDB (optional)
-
-### Frameworks & Tools
-
-* LangChain (RAG orchestration)
-* Streamlit (UI)
-
----
-
-## ⚙️ Installation & Setup
+Python 3.12 is the tested runtime.
 
 ```bash
-# Clone the repository
-git clone https://github.com/Abhishek-09-Tomar/ai-document-chatbot.git
-cd ai-document-chatbot
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run the application
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+# macOS/Linux: source .venv/bin/activate
+python -m pip install -r requirements.txt
 streamlit run app.py
 ```
 
----
+Optional environment variables (see `.env.example`):
 
-## How to Run (High-Level)
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| HF_TOKEN | unset | Hosted inference credential; also supports Streamlit secrets |
+| HF_MODEL | Qwen/Qwen2.5-7B-Instruct | Provider-served chat model |
+| EMBEDDING_BACKEND | tfidf | CPU lexical search; optional sentence-transformers |
+| EMBEDDING_MODEL | sentence-transformers/all-MiniLM-L6-v2 | Optional semantic model |
 
-1. Clone the repository
-2. Install dependencies
-3. Run the Streamlit app
-4. Upload documents
-5. Ask questions and get grounded answers
+A token needs permission to call Inference Providers. Model availability and credits depend on the account/provider. The app never downloads a local generation model.
 
----
+The default search uses a fitted TF-IDF vocabulary with normalized FAISS inner-product search. It is fast and offline, but synonyms and broad summaries can miss relevant passages. Optional semantic search requires `requirements-semantic.txt` and `EMBEDDING_BACKEND=sentence-transformers`; it uses more RAM and downloads MiniLM. The deployed default uses TF-IDF.
 
-## Example Usage
+## Tests
 
-**Uploaded Documents:**
+```bash
+python -m pip install -r requirements-dev.txt
+python -m pytest -q
+python -m pip check
+```
 
-* `machine_learning_notes.pdf`
-* `deep_learning_research.pdf`
+Tests cover PDF extraction, empty/scanned/encrypted/corrupt files, text encoding, chunk overlap, FAISS retrieval, session isolation, index replacement, provider fallback, history, citations, and Streamlit chat/reset behavior. No GPU, API token, or network is required for the test suite. GitHub Actions runs the tests on Linux/Python 3.12.
 
-**User Question:**
+`requirements.in` declares direct dependencies; `requirements.txt` pins the complete core environment. To refresh it with uv:
 
-> What is the difference between supervised and unsupervised learning?
+```bash
+uv pip compile requirements.in --python-version 3.12 --output-file requirements.txt
+```
 
-**Chatbot Answer:**
+## Deploy to Hugging Face Spaces
 
-> Supervised learning uses labeled data to train models, while unsupervised learning works on unlabeled data to discover patterns. This answer is generated using relevant sections retrieved from the uploaded documents.
+Create a **Docker Space** named `ai-document-chatbot` and upload this repository's tracked files. The README metadata sets `sdk: docker` and port `7860`; the Dockerfile runs Streamlit as a non-root user on that port. Use the free CPU tier when available; no GPU is required.
 
----
+Optional: in **Settings → Variables and secrets**, add `HF_TOKEN` as a secret and `HF_MODEL` as a variable. Never put the token in source code, README, build arguments, or Git remotes. The application works without this secret in source-excerpt mode.
 
-## Use Cases
+```bash
+docker build -t ai-document-chatbot .
+docker run --rm -p 7860:7860 ai-document-chatbot
+```
 
-* Document-based question answering
-* Research paper analysis
-* Company policy / legal document search
-* Academic notes and textbook Q&A
-* Internal knowledge base chatbot
+After the build reports Running, open the public app, upload a small PDF, select Process documents, ask a question, and check its source citation. The health endpoint is `/_stcore/health`.
 
----
+## Limits and privacy
 
-## Future Improvements
+- Up to 10 documents, 10 MB per document, 200 pages per PDF, one million extracted characters, and 2,000 chunks per batch.
+- Scanned/image-only PDFs require OCR beforehand; encrypted PDFs must be unlocked.
+- Documents and indexes stay in session memory. The app does not save uploads, chat, or indexes to shared files or global Streamlit caches. Closing/refreshing a session or restarting the Space may clear its state.
+- Hosted AI is opt-in. It transmits relevant passages and the last few messages to Hugging Face and its selected provider. Source-excerpt mode makes no inference requests.
+- This public demo has no account authentication or durable conversation storage. Do not upload confidential documents to a public demo. Generated answers can be wrong; verify source passages.
+- Chat history is bounded to recent turns. Follow-ups use the prior question for retrieval and recent messages for hosted generation.
 
-* Multi-document conversational memory
-* Source citation in answers
-* Support for more file formats
-* Cloud deployment
-* Authentication and access control
+## Modules
 
----
-
-## Project Highlights
-
-* End-to-end RAG pipeline
-* FAISS-powered semantic retrieval
-* Transformer-based LLM integration
-* Modular, scalable architecture
-* Production-style system design
-
----
-
-## Interview & Resume Talking Points
-
-* Designed a full RAG pipeline to reduce hallucinations
-* Implemented vector embeddings and FAISS search
-* Optimized chunking for context efficiency
-* Integrated open-source LLMs with LangChain
-* Built an interactive Streamlit UI
-* Demonstrates strong NLP and system design skills
-
----
-
-## Connect With Me
-
-* **GitHub:** [https://github.com/Abhishek-09-Tomar](https://github.com/Abhishek-09-Tomar)
-* **LinkedIn:** [https://www.linkedin.com/in/abhishek-tomar-7aa29127b](https://www.linkedin.com/in/abhishek-tomar-7aa29127b)
-* **LeetCode:** [https://leetcode.com/u/Abhishek_Tomar_99/](https://leetcode.com/u/Abhishek_Tomar_99/)
-* **Codeforces:** [https://codeforces.com/profile/Abhishek_Tomar](https://codeforces.com/profile/Abhishek_Tomar)
-
----
-
-## 📜 License
-
-MIT License
-
-
+- `app.py`: upload workflow, session state, chat, sources, and export.
+- `document_processor/loader.py`: bounded PDF/TXT extraction and page-aware chunks.
+- `embeddings/embedder.py`: fitted TF-IDF or optional CPU Sentence-Transformers.
+- `retrieval/faiss_store.py`: in-memory per-session FAISS cosine search.
+- `llm/generator.py`: hosted inference and explicit source-excerpt fallback.
+- `utils/conversation.py`: short follow-up retrieval context.

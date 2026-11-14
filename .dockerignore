@@ -1,0 +1,15 @@
+.git
+.venv
+venv
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+__pycache__
+.pytest_cache
+*.pyc
+*.index
+*.pkl
+tests
+notebooks
+work

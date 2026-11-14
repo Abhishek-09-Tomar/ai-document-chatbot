@@ -1,19 +1,18 @@
-# Environment
 .env
 .env.*
+!.env.example
+.streamlit/secrets.toml
 venv/
 .venv/
-
-# Python
 __pycache__/
-*.pyc
-*.pyo
-
-# Project artifacts
+*.py[cod]
+.pytest_cache/
+.ty_cache/
 cache/
 data/
-.faiss
-
-# OS
+*.faiss
+*.index
+*.pkl
+*.log
 .DS_Store
 Thumbs.db
